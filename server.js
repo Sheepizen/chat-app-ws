@@ -30,12 +30,21 @@ wss.on('connection', (ws) => {
 ws.id = wss.getUniqueID();
 
   ws.on('message', function message(data) {
+  const dataMessage = JSON.parse(data)
+    if(dataMessage.type == "usernameInput"){
+      ws.username = dataMessage.username
+      return 
+    }
+    console.log("data got ", dataMessage)
+    if(dataMessage.type == "chatMessage"){
+console.log("dataMessage chat", dataMessage)
+    
   wss.clients.forEach(function each(client) {
       if (client.readyState === WebSocket.OPEN) {
-        client.send(JSON.stringify({ id: ws.id, message: data.toString()}))
+        client.send(JSON.stringify({ username: ws.username, message: dataMessage.message}))
       }
   })
-  });
+    }});
 
   console.log('Client connected');
   // ws.send('Welcome to WebSocket!');
