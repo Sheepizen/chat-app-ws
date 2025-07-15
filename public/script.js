@@ -8,6 +8,9 @@ ws.onopen = ()=>{
   console.log("connected")
   // ws.send("Hello from the client")
 }
+
+chatInput.value= ""
+usernameInput.value=""
 dialog.showModal()
 
   ws.onmessage= (event) => {
@@ -23,7 +26,9 @@ chatInput.addEventListener('keydown',(e)=>{
   if(e.key == 'Enter'){
     console.log('submitted', chatInput.value)
 
-    ws.send(JSON.stringify({type:"chatMessage", username: ws.username,message:chatInput.value}))  }
+    ws.send(JSON.stringify({type:"chatMessage", username: ws.username,message:chatInput.value})) 
+chatInput.value = ""
+  }
 })
 
 usernameInput.addEventListener('keydown', (e)=>{
