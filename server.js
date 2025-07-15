@@ -1,0 +1,43 @@
+import express from 'express';
+import { WebSocketServer } from 'ws';
+
+const app = express();
+const port = 8080;
+
+app.use(express.static('public'))
+
+app.get('/', (req, res) => {
+  res.sendFile('/home/jonatan/Projects/chat/index.html'); // serve your HTML file
+});
+
+
+const server = app.listen(port, () => {
+  console.log(`HTTP server listening on http://localhost:${port}`);
+});
+
+const wss = new WebSocketServer({ server }); // use the same server for WS
+
+wss.getUniqueID = function () {
+    function s4() {
+        return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
+    }
+    return s4() + s4() + '-' + s4();
+};
+
+wss.on('connection', (ws) => {
+  ws.on('error', console.error);
+
+ws.id = wss.getUniqueID();
+
+  ws.on('message', function message(data) {
+  wss.clients.forEach(function each(client) {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify({ id: ws.id, message: data.toString()}))
+      }
+  })
+  });
+
+  console.log('Client connected');
+  // ws.send('Welcome to WebSocket!');
+})
+;

@@ -1,0 +1,45 @@
+header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#contents{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#chat-container{
+  display: flex;
+  flex-direction: column;
+  position: relative;
+height: 300px;
+width: 35%;
+border: 2px solid black;
+}
+#messages-container{
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  height:100%;
+  width:100%;
+  overflow-y: auto;
+}
+
+#input-container{
+  flex-shrink: 0;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  /* border-top: 1px solid black; */
+}
+
+#chat-box{
+border-top: 1px solid black;
+width: 100%;
+}
+input{
+  all:unset;
+}
+
+
+
