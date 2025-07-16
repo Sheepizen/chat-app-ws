@@ -23,11 +23,13 @@ wss.getUniqueID = function () {
     }
     return s4() + s4() + '-' + s4();
 };
+let chatHistory = {general:{messages:[]}}
 
 wss.on('connection', (ws) => {
   ws.on('error', console.error);
 
 ws.id = wss.getUniqueID();
+ws.send(JSON.stringify({type:"chatHistory", history: chatHistory}))
 
   ws.on('message', function message(data) {
   const dataMessage = JSON.parse(data)
@@ -38,10 +40,10 @@ ws.id = wss.getUniqueID();
     console.log("data got ", dataMessage)
     if(dataMessage.type == "chatMessage"){
 console.log("dataMessage chat", dataMessage)
-    
+   chatHistory.general.messages.push({username: ws.username, message: dataMessage.message}) 
   wss.clients.forEach(function each(client) {
       if (client.readyState === WebSocket.OPEN) {
-        client.send(JSON.stringify({ username: ws.username, message: dataMessage.message}))
+        client.send(JSON.stringify({type:"chatMessage", username: ws.username, message: dataMessage.message}))
       }
   })
     }});
