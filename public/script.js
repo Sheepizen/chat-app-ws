@@ -1,6 +1,8 @@
 const chatInput = document.getElementById("chat-box");
 const usernameInput = document.getElementById("username-input")
 const dialog = document.getElementById("dialog")
+const addNewRoomBtnContainer= document.getElementById("add-new-room-btn-container")
+const addNewRoomBtn = document.getElementById("add-new-room-btn")
 const roomsDiv =document.getElementsByClassName("rooms-div")[0]
 const rooms = roomsDiv.querySelectorAll("*")
 let messagesContainer = document.getElementById("messages-container")
@@ -49,8 +51,26 @@ usernameInput.addEventListener('keydown', (e)=>{
   dialog.close()}
 })
 
-rooms.forEach((room)=>{
+addNewRoomBtn.addEventListener('click',()=>{
+  addNewRoomBtnContainer.innerHTML = "" 
+  const newRoomInput = document.createElement('input')
+  newRoomInput.setAttribute("placeholder", "input roomname")
+  newRoomInput.addEventListener('keydown',(e)=>{
+    if(e.key == 'Enter'){
+      const newRoomBtn = document.createElement('button')
+      newRoomBtn.classList.add("room-btn")
+      newRoomBtn.innerHTML = newRoomInput.value
+      roomsDiv.append(newRoomBtn)
+      addNewRoomBtnContainer.innerHTML= ""
+      addNewRoomBtnContainer.appendChild(addNewRoomBtn)
+      console.log("addNewRoomBtn",addNewRoomBtn)
+    }
+  })
+  addNewRoomBtnContainer.append(newRoomInput)
 
+})
+
+rooms.forEach((room)=>{
 room.addEventListener("click", ()=>{
   ws.send(JSON.stringify({type:"roomChange", room:room.textContent}))
   messagesContainer.innerHTML = ""

@@ -52,6 +52,16 @@ input{
   margin: 30px
 }
 
+#new-room-btn-container{
+  position: relative;
+  justify-content: center;
+}
+
+#new-room-btn{
+  position: relative;
+  justify-content: center;
+}
+
 .rooms{
   border-bottom: 1px black solid;
 }
