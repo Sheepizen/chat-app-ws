@@ -45,5 +45,20 @@ input{
   all:unset;
 }
 
+#rooms-container{
+  border: 2px black solid;
+  width: 5%;
+  height: 300px;
+  margin: 30px
+}
+
+.rooms{
+  border-bottom: 1px black solid;
+}
+.room-btn{
+  height: 100%;
+  width: 100%;
+}
+
 
 

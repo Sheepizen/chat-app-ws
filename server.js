@@ -23,7 +23,7 @@ wss.getUniqueID = function () {
     }
     return s4() + s4() + '-' + s4();
 };
-let chatHistory = {general:{messages:[]}}
+let chatHistory = {general:{messages:[]}, quatsch:{messages:[]}}
 
 wss.on('connection', (ws) => {
   ws.on('error', console.error);
@@ -37,16 +37,25 @@ ws.send(JSON.stringify({type:"chatHistory", history: chatHistory}))
       ws.username = dataMessage.username
       return 
     }
+
     console.log("data got ", dataMessage)
+
     if(dataMessage.type == "chatMessage"){
-console.log("dataMessage chat", dataMessage)
-   chatHistory.general.messages.push({username: ws.username, message: dataMessage.message}) 
+
+   chatHistory[dataMessage.room].messages.push({username: ws.username, message: dataMessage.message}) 
   wss.clients.forEach(function each(client) {
       if (client.readyState === WebSocket.OPEN) {
-        client.send(JSON.stringify({type:"chatMessage", username: ws.username, message: dataMessage.message}))
+        client.send(JSON.stringify({type:"chatMessage", room: dataMessage.room, username: ws.username, message: dataMessage.message}))
       }
   })
-    }});
+    }
+
+    if(dataMessage.type=="roomChange"){
+      ws.send(JSON.stringify({type:"chatHistory", history: chatHistory}))
+    }
+
+
+  });
 
   console.log('Client connected');
   // ws.send('Welcome to WebSocket!');
