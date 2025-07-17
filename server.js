@@ -55,7 +55,7 @@ wss.on('connection', (ws) => {
     }
 
     if (dataMessage.type == "addNewRoom") {
-      dataMessage[dataMessage.room] = { messages: [] }
+      chatHistory[dataMessage.room] = { messages: [] }
       wss.clients.forEach(function each(client) {
         if (client.readyState === WebSocket.OPEN) {
           client.send(JSON.stringify({ type: "addNewRoom", room: dataMessage.room }))

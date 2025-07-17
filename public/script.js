@@ -7,8 +7,7 @@ const roomsDiv = document.getElementsByClassName("rooms-div")[0]
 const rooms = roomsDiv.querySelectorAll("*")
 let messagesContainer = document.getElementById("messages-container")
 const ws = new WebSocket('ws://10.109.69.120:8080/');
-let activeRoom = "general"
-
+setActiveRoom(rooms[0])
 
 chatInput.value = ""
 usernameInput.value = ""
@@ -29,7 +28,7 @@ ws.onmessage = (event) => {
   }
 
   if (data.type == "chatHistory") {
-    for (const message of data.history[activeRoom].messages) {
+    for (const message of data.history[getActiveRoom().innerHTML].messages) {
       const div = document.createElement('div')
       div.textContent = `${message.username}: ` + `${message.message}`
       messagesContainer.appendChild(div)
@@ -37,13 +36,7 @@ ws.onmessage = (event) => {
   }
 
   if (data.type == "addNewRoom") {
-    const newRoomBtn = document.createElement('button')
-    newRoomBtn.classList.add("room-btn")
-    newRoomBtn.innerHTML = data.room
-    roomsDiv.append(newRoomBtn)
-    addNewRoomBtnContainer.innerHTML = ""
-    addNewRoomBtnContainer.appendChild(addNewRoomBtn)
-    console.log("addNewRoomBtn", addNewRoomBtn)
+    appendRoom(data.room)
   }
 
 }
@@ -51,7 +44,7 @@ ws.onmessage = (event) => {
 
 chatInput.addEventListener('keydown', (e) => {
   if (e.key == 'Enter') {
-    ws.send(JSON.stringify({ type: "chatMessage", room: activeRoom, username: ws.username, message: chatInput.value }))
+    ws.send(JSON.stringify({ type: "chatMessage", room: getActiveRoom().innerHTML, username: ws.username, message: chatInput.value }))
     chatInput.value = ""
   }
 })
@@ -79,6 +72,17 @@ addNewRoomBtn.addEventListener('click', () => {
   addNewRoom()
 })
 
+function appendRoom(roomname) {
+  const newRoomBtn = document.createElement('button')
+  newRoomBtn.classList.add("room-btn")
+  newRoomBtn.innerHTML = roomname
+  roomsDiv.append(newRoomBtn)
+  addNewRoomBtnContainer.innerHTML = ""
+  addNewRoomBtnContainer.appendChild(addNewRoomBtn)
+  console.log("addNewRoomBtn", addNewRoomBtn)
+}
+
+
 
 
 rooms.forEach((room) => {
@@ -100,6 +104,7 @@ function setActiveRoom(newActiveRoom) {
   }
   newActiveRoom.classList.add("active-room")
 }
+
 
 
 
