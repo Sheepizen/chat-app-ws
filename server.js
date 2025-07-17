@@ -30,6 +30,7 @@ wss.on('connection', (ws) => {
 
   ws.id = wss.getUniqueID();
   ws.send(JSON.stringify({ type: "chatHistory", history: chatHistory }))
+  ws.send(JSON.stringify({ type: "loadRooms", history: chatHistory }))
 
   ws.on('message', function message(data) {
     const dataMessage = JSON.parse(data)

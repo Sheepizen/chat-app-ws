@@ -35,6 +35,38 @@ ws.onmessage = (event) => {
     }
   }
 
+  if (data.type == "loadRooms") {
+    const roomnames = []
+    for (const [key, value] of Object.entries(rooms)) {
+      roomnames.push(value.innerHTML)
+    }
+    console.log(roomnames)
+    for (const room of Object.entries(data.history)) {
+      const roomname = room[0]
+      if (roomnames.includes(roomname)) {
+        continue
+      }
+      appendRoom(roomname)
+    }
+  }
+
+  // if (data.type == "chatHistory") {
+  //   console.log("ECHT", Object.entries(data.history))
+  //   for (const [room, messages] of Object.entries(data.history)) {
+  //     console.log("room", room, "messages", messages)
+  //     appendRoom(room)
+  //
+  //     for (const message of messages) {
+  //       console.log("individual message hahah", message)
+  //     }
+  //     // const roomDiv = document.createElement('div')
+  //     // roomDiv.textContent = room
+  //     // const div = document.createElement('div')
+  //     // div.textContent = `${message.username}: ` + `${message.message}`
+  //     // messagesContainer.appendChild(div)
+  //   }
+  // }
+
   if (data.type == "addNewRoom") {
     appendRoom(data.room)
   }
@@ -99,10 +131,12 @@ function getActiveRoom() {
 }
 
 function setActiveRoom(newActiveRoom) {
+  console.log("newActiveRoom", newActiveRoom)
   if (getActiveRoom()) {
     getActiveRoom().classList.remove("active-room")
   }
   newActiveRoom.classList.add("active-room")
+  console.log("AFTER ADD", newActiveRoom)
 }
 
 
