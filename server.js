@@ -17,41 +17,49 @@ const server = app.listen(port, () => {
 
 const wss = new WebSocketServer({ server }); // use the same server for WS
 
-wss.getUniqueID = function () {
-    function s4() {
-        return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
-    }
-    return s4() + s4() + '-' + s4();
+wss.getUniqueID = function() {
+  function s4() {
+    return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
+  }
+  return s4() + s4() + '-' + s4();
 };
-let chatHistory = {general:{messages:[]}, quatsch:{messages:[]}}
+let chatHistory = { general: { messages: [] }, quatsch: { messages: [] } }
 
 wss.on('connection', (ws) => {
   ws.on('error', console.error);
 
-ws.id = wss.getUniqueID();
-ws.send(JSON.stringify({type:"chatHistory", history: chatHistory}))
+  ws.id = wss.getUniqueID();
+  ws.send(JSON.stringify({ type: "chatHistory", history: chatHistory }))
 
   ws.on('message', function message(data) {
-  const dataMessage = JSON.parse(data)
-    if(dataMessage.type == "usernameInput"){
+    const dataMessage = JSON.parse(data)
+    if (dataMessage.type == "usernameInput") {
       ws.username = dataMessage.username
-      return 
+      return
     }
 
     console.log("data got ", dataMessage)
 
-    if(dataMessage.type == "chatMessage"){
+    if (dataMessage.type == "chatMessage") {
 
-   chatHistory[dataMessage.room].messages.push({username: ws.username, message: dataMessage.message}) 
-  wss.clients.forEach(function each(client) {
-      if (client.readyState === WebSocket.OPEN) {
-        client.send(JSON.stringify({type:"chatMessage", room: dataMessage.room, username: ws.username, message: dataMessage.message}))
-      }
-  })
+      chatHistory[dataMessage.room].messages.push({ username: ws.username, message: dataMessage.message })
+      wss.clients.forEach(function each(client) {
+        if (client.readyState === WebSocket.OPEN) {
+          client.send(JSON.stringify({ type: "chatMessage", room: dataMessage.room, username: ws.username, message: dataMessage.message }))
+        }
+      })
     }
 
-    if(dataMessage.type=="roomChange"){
-      ws.send(JSON.stringify({type:"chatHistory", history: chatHistory}))
+    if (dataMessage.type == "roomChange") {
+      ws.send(JSON.stringify({ type: "chatHistory", history: chatHistory }))
+    }
+
+    if (dataMessage.type == "addNewRoom") {
+      wss.clients.forEach(function each(client) {
+        if (client.readyState === WebSocket.OPEN) {
+          client.send(JSON.stringify({ type: "addNewRoom", roomname: dataMessage.roomname }))
+        }
+      })
     }
 
 
@@ -60,4 +68,4 @@ ws.send(JSON.stringify({type:"chatHistory", history: chatHistory}))
   console.log('Client connected');
   // ws.send('Welcome to WebSocket!');
 })
-;
+  ;

@@ -70,5 +70,8 @@ input{
   width: 100%;
 }
 
+.active-room{
+  background-color: red;
+}
 
 
