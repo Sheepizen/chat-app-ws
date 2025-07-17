@@ -37,10 +37,9 @@ ws.onmessage = (event) => {
   }
 
   if (data.type == "addNewRoom") {
-    console.log("GOT ADD NEW ROOM")
     const newRoomBtn = document.createElement('button')
     newRoomBtn.classList.add("room-btn")
-    newRoomBtn.innerHTML = data.roomname
+    newRoomBtn.innerHTML = data.room
     roomsDiv.append(newRoomBtn)
     addNewRoomBtnContainer.innerHTML = ""
     addNewRoomBtnContainer.appendChild(addNewRoomBtn)
@@ -70,8 +69,7 @@ function addNewRoom() {
   newRoomInput.setAttribute("placeholder", "input roomname")
   newRoomInput.addEventListener('keydown', (e) => {
     if (e.key == 'Enter') {
-      console.log("HEY FE")
-      ws.send(JSON.stringify({ type: "addNewRoom", roomname: newRoomInput.value }))
+      ws.send(JSON.stringify({ type: "addNewRoom", room: newRoomInput.value }))
     }
   })
   addNewRoomBtnContainer.append(newRoomInput)
