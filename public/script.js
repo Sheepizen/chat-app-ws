@@ -104,17 +104,22 @@ usernameInput.addEventListener('keydown', (e) => {
 
 
 chatInput.addEventListener('keydown', (e) => {
+  const allowedKeys = /^[a-zA-Z0-9äöüÄÖÜ\-#+!"§\$%&\/()=\?`.:;,<>^°]$/;
   if (e.key == 'Enter') {
     ws.send(JSON.stringify({ type: "chatMessage", room: getActiveRoom().innerHTML, username: ws.username, message: chatInput.value }))
     ws.send(JSON.stringify({ type: "notTyping", room: getActiveRoom().innerHTML }))
     chatInput.value = ""
+    return
   }
   if (e.key == 'Backspace') {
     ws.send(JSON.stringify({ type: "notTyping", room: getActiveRoom().innerHTML }))
     return
   }
 
-  ws.send(JSON.stringify({ type: "userTyping", username: ws.username, room: getActiveRoom().innerHTML }))
+  if (allowedKeys.test(e.key)) {
+    ws.send(JSON.stringify({ type: "userTyping", username: ws.username, room: getActiveRoom().innerHTML }))
+  }
+  return
 })
 
 
