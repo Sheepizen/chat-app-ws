@@ -24,6 +24,7 @@ wss.getUniqueID = function() {
   return s4() + s4() + '-' + s4();
 };
 let chatHistory = { general: { messages: [] }, quatsch: { messages: [] } }
+let userTyping = false;
 
 wss.on('connection', (ws) => {
   ws.on('error', console.error);
@@ -36,7 +37,7 @@ wss.on('connection', (ws) => {
     const dataMessage = JSON.parse(data)
     if (dataMessage.type == "usernameInput") {
       ws.username = dataMessage.username
-      return
+
     }
 
     console.log("data got ", dataMessage)
@@ -52,7 +53,7 @@ wss.on('connection', (ws) => {
     }
 
     if (dataMessage.type == "roomChange") {
-      ws.send(JSON.stringify({ type: "chatHistory", history: chatHistory }))
+      ws.send(JSON.stringify({ type: "roomChange", history: chatHistory }))
     }
 
     if (dataMessage.type == "addNewRoom") {
@@ -63,6 +64,27 @@ wss.on('connection', (ws) => {
         }
       })
     }
+
+    if (dataMessage.type == "userTyping") {
+      console.log("DATA MESSAGE", dataMessage)
+      wss.clients.forEach(function each(client) {
+        if (client !== ws && client.readyState == WebSocket.OPEN) {
+          client.send(JSON.stringify({ type: "userTyping", username: dataMessage.username, userTypingBool: true, room: dataMessage.room }))
+        }
+      })
+    }
+
+    if (dataMessage.type == "notTyping") {
+      wss.clients.forEach(function each(client) {
+        if (client !== ws && client.readyState == WebSocket.OPEN) {
+          client.send(JSON.stringify({ type: "userTyping", room: dataMessage.room, userTypingBool: false }))
+        }
+      })
+    }
+
+
+
+
 
 
   });

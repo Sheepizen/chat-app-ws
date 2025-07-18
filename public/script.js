@@ -6,7 +6,7 @@ const addNewRoomBtn = document.getElementById("add-new-room-btn")
 const roomsDiv = document.getElementsByClassName("rooms-div")[0]
 const rooms = roomsDiv.querySelectorAll("*")
 let messagesContainer = document.getElementById("messages-container")
-const ws = new WebSocket('ws://10.109.69.120:8080/');
+const ws = new WebSocket('ws://192.168.42.164:8080/');
 setActiveRoom(rooms[0])
 
 chatInput.value = ""
@@ -16,15 +16,26 @@ dialog.showModal()
 ws.onopen = () => {
   console.log("connected")
   // ws.send("Hello from the client")
+  rooms.forEach((room) => {
+    room.addEventListener("click", () => {
+      ws.send(JSON.stringify({ type: "roomChange", room: room.textContent }))
+      messagesContainer.innerHTML = ""
+      setActiveRoom(room)
+    })
+  })
 }
+
 
 ws.onmessage = (event) => {
   console.log("message from server: ", JSON.parse(event.data))
   const data = JSON.parse(event.data)
+
   if (data.type == "chatMessage") {
-    const message = document.createElement("div")
-    message.textContent = `${data.username}: ` + `${data.message}`
-    messagesContainer.appendChild(message)
+    if (getActiveRoom().innerHTML == data.room) {
+      const message = document.createElement("div")
+      message.textContent = `${data.username}: ` + `${data.message}`
+      messagesContainer.appendChild(message)
+    }
   }
 
   if (data.type == "chatHistory") {
@@ -50,43 +61,62 @@ ws.onmessage = (event) => {
     }
   }
 
-  // if (data.type == "chatHistory") {
-  //   console.log("ECHT", Object.entries(data.history))
-  //   for (const [room, messages] of Object.entries(data.history)) {
-  //     console.log("room", room, "messages", messages)
-  //     appendRoom(room)
-  //
-  //     for (const message of messages) {
-  //       console.log("individual message hahah", message)
-  //     }
-  //     // const roomDiv = document.createElement('div')
-  //     // roomDiv.textContent = room
-  //     // const div = document.createElement('div')
-  //     // div.textContent = `${message.username}: ` + `${message.message}`
-  //     // messagesContainer.appendChild(div)
-  //   }
-  // }
-
   if (data.type == "addNewRoom") {
     appendRoom(data.room)
+  }
+
+  if (data.type == "roomChange") {
+    for (const message of data.history[getActiveRoom().innerHTML].messages) {
+      const div = document.createElement('div')
+      div.textContent = `${message.username}: ` + `${message.message}`
+      messagesContainer.appendChild(div)
+    }
+  }
+
+  if (data.type == "userTyping" && data.room == getActiveRoom().innerHTML) {
+    const typingElem = document.querySelector("#user-typing")
+    console.log("TYPIGNELEMT", typingElem)
+    if (typingElem) {
+      typingElem.remove()
+    }
+    console.log("databool", data.userTypingBool)
+    if (data.userTypingBool) {
+      const div = document.createElement('div')
+      div.id = "user-typing"
+      div.textContent = `${data.username} is typing...`
+      div.style.color = "grey"
+      messagesContainer.appendChild(div)
+      return
+    }
+
   }
 
 }
 
 
-chatInput.addEventListener('keydown', (e) => {
-  if (e.key == 'Enter') {
-    ws.send(JSON.stringify({ type: "chatMessage", room: getActiveRoom().innerHTML, username: ws.username, message: chatInput.value }))
-    chatInput.value = ""
-  }
-})
-
 usernameInput.addEventListener('keydown', (e) => {
   if (e.key == 'Enter') {
+    ws.username = usernameInput.value
     ws.send(JSON.stringify({ type: "usernameInput", username: usernameInput.value }))
     dialog.close()
   }
 })
+
+
+chatInput.addEventListener('keydown', (e) => {
+  if (e.key == 'Enter') {
+    ws.send(JSON.stringify({ type: "chatMessage", room: getActiveRoom().innerHTML, username: ws.username, message: chatInput.value }))
+    ws.send(JSON.stringify({ type: "notTyping", room: getActiveRoom().innerHTML }))
+    chatInput.value = ""
+  }
+  if (e.key == 'Backspace') {
+    ws.send(JSON.stringify({ type: "notTyping", room: getActiveRoom().innerHTML }))
+    return
+  }
+
+  ws.send(JSON.stringify({ type: "userTyping", username: ws.username, room: getActiveRoom().innerHTML }))
+})
+
 
 function addNewRoom() {
   addNewRoomBtnContainer.innerHTML = ""
@@ -108,6 +138,11 @@ function appendRoom(roomname) {
   const newRoomBtn = document.createElement('button')
   newRoomBtn.classList.add("room-btn")
   newRoomBtn.innerHTML = roomname
+  newRoomBtn.addEventListener("click", () => {
+    ws.send(JSON.stringify({ type: "roomChange", room: newRoomBtn.textContent }))
+    messagesContainer.innerHTML = ""
+    setActiveRoom(newRoomBtn)
+  })
   roomsDiv.append(newRoomBtn)
   addNewRoomBtnContainer.innerHTML = ""
   addNewRoomBtnContainer.appendChild(addNewRoomBtn)
@@ -117,13 +152,6 @@ function appendRoom(roomname) {
 
 
 
-rooms.forEach((room) => {
-  room.addEventListener("click", () => {
-    ws.send(JSON.stringify({ type: "roomChange", room: room.textContent }))
-    messagesContainer.innerHTML = ""
-    setActiveRoom(room)
-  })
-})
 
 
 function getActiveRoom() {
