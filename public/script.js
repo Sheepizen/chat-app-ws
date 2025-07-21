@@ -6,7 +6,7 @@ const addNewRoomBtn = document.getElementById("add-new-room-btn")
 const roomsDiv = document.getElementsByClassName("rooms-div")[0]
 const rooms = roomsDiv.querySelectorAll("*")
 let messagesContainer = document.getElementById("messages-container")
-const ws = new WebSocket('ws://192.168.42.164:8080/');
+const ws = new WebSocket(`ws://${window.location.hostname}:8080/`);
 setActiveRoom(rooms[0])
 
 chatInput.value = ""

@@ -24,7 +24,6 @@ wss.getUniqueID = function() {
   return s4() + s4() + '-' + s4();
 };
 let chatHistory = { general: { messages: [] }, quatsch: { messages: [] } }
-let userTyping = false;
 
 wss.on('connection', (ws) => {
   ws.on('error', console.error);
