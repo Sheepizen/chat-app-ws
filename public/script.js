@@ -75,11 +75,9 @@ ws.onmessage = (event) => {
 
   if (data.type == "userTyping" && data.room == getActiveRoom().innerHTML) {
     const typingElem = document.querySelector("#user-typing")
-    console.log("TYPIGNELEMT", typingElem)
     if (typingElem) {
       typingElem.remove()
     }
-    console.log("databool", data.userTypingBool)
     if (data.userTypingBool) {
       const div = document.createElement('div')
       div.id = "user-typing"
@@ -102,8 +100,13 @@ usernameInput.addEventListener('keydown', (e) => {
   }
 })
 
+let typingController = { cancelled: false };
 
-chatInput.addEventListener('keydown', (e) => {
+function delay(t) {
+  return new Promise(resolve => setTimeout(resolve, t));
+}
+
+chatInput.addEventListener('keydown', async (e) => {
   const allowedKeys = /^[a-zA-Z0-9äöüÄÖÜ\-#+!"§\$%&\/()=\?`.:;,<>^°]$/;
   if (e.key == 'Enter') {
     ws.send(JSON.stringify({ type: "chatMessage", room: getActiveRoom().innerHTML, username: ws.username, message: chatInput.value }))
@@ -118,6 +121,21 @@ chatInput.addEventListener('keydown', (e) => {
 
   if (allowedKeys.test(e.key)) {
     ws.send(JSON.stringify({ type: "userTyping", username: ws.username, room: getActiveRoom().innerHTML }))
+
+
+    typingController.cancelled = true
+    const controller = { cancelled: false }
+    typingController = controller
+    await delay(1500)
+
+    if (!controller.cancelled) {
+      ws.send(JSON.stringify({
+        type: "notTyping",
+        username: ws.username,
+        room: getActiveRoom().innerHTML
+      }));
+    }
+    return
   }
   return
 })
@@ -138,6 +156,10 @@ function addNewRoom() {
 addNewRoomBtn.addEventListener('click', () => {
   addNewRoom()
 })
+
+
+
+
 
 function appendRoom(roomname) {
   const newRoomBtn = document.createElement('button')
