@@ -1,6 +1,6 @@
 import express from 'express';
 import { WebSocketServer } from 'ws';
-
+import { readFileSync, writeFile } from 'node:fs';
 const app = express();
 const port = 8080;
 
@@ -24,7 +24,19 @@ wss.getUniqueID = function() {
   }
   return s4() + s4() + '-' + s4();
 };
-let chatHistory = { general: { messages: [] }, quatsch: { messages: [] } }
+
+function loadChatHistory() {
+  const data = readFileSync("./data/ChatHistory.json", 'utf8')
+  return JSON.parse(data)
+}
+
+function writeChatHistory(data) {
+  const parsedData = JSON.stringify(data)
+  writeFile("./data/ChatHistory.json", parsedData, 'utf8', function(err) { if (err) { console.error(err) } console.log("file written succesfully") })
+}
+
+let chatHistory = loadChatHistory()
+
 let clientList = new Set([])
 
 wss.on('connection', (ws) => {
@@ -51,8 +63,8 @@ wss.on('connection', (ws) => {
     console.log("data got ", dataMessage)
 
     if (dataMessage.type == "chatMessage") {
-
       chatHistory[dataMessage.room].messages.push({ username: ws.username, message: dataMessage.message })
+      writeChatHistory(chatHistory)
       wss.clients.forEach(function each(client) {
         if (client.readyState === WebSocket.OPEN) {
           client.send(JSON.stringify({ type: "chatMessage", room: dataMessage.room, username: ws.username, message: dataMessage.message }))
