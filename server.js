@@ -35,9 +35,11 @@ function writeChatHistory(data) {
   writeFile("./data/ChatHistory.json", parsedData, 'utf8', function(err) { if (err) { console.error(err) } console.log("file written succesfully") })
 }
 
+
 let chatHistory = loadChatHistory()
 
-let clientList = new Set([])
+let clientList = new Set()
+console.log("clientList", clientList)
 
 wss.on('connection', (ws) => {
   ws.on('error', console.error);
@@ -50,9 +52,16 @@ wss.on('connection', (ws) => {
 
   ws.on('message', function message(data) {
     const dataMessage = JSON.parse(data)
+
     if (dataMessage.type == "usernameInput") {
+      if (clientList.has(dataMessage.username)) {
+        ws.send(JSON.stringify({ type: "alreadyExists" }))
+        return
+      }
+      ws.send(JSON.stringify({ type: "loginSuccess" }))
       ws.username = dataMessage.username
       clientList.add(dataMessage.username)
+      console.log("clientList", clientList)
       wss.clients.forEach(function each(client) {
         if (client.readyState === WebSocket.OPEN) {
           client.send(JSON.stringify({ type: "clientList", clients: Array.from(clientList) }))
@@ -103,6 +112,7 @@ wss.on('connection', (ws) => {
 
     ws.on("close", () => {
       clientList.delete(ws.username)
+      console.log("clientList", clientList)
       wss.clients.forEach(function each(client) {
         if (client !== ws && client.readyState == WebSocket.OPEN) {
           client.send(JSON.stringify({ type: "clientList", clients: Array.from(clientList) }))

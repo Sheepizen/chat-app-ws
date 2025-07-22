@@ -31,6 +31,24 @@ ws.onmessage = (event) => {
   console.log("message from server: ", JSON.parse(event.data))
   const data = JSON.parse(event.data)
 
+  if (data.type == "alreadyExists") {
+    const warningElem = document.getElementById("already-exists-warning")
+    if (warningElem) {
+      return
+    }
+    const div = document.createElement("div")
+    div.id = "already-exists-warning"
+    div.textContent = "user already exists. Please try another username"
+    div.style.color = "red";
+    dialog.appendChild(div)
+  }
+
+
+  if (data.type == "loginSuccess") {
+    dialog.close()
+  }
+
+
   if (data.type == "clientList") {
     usersContainer.innerHTML = ""
     data.clients.forEach((client) => {
@@ -107,7 +125,6 @@ usernameInput.addEventListener('keydown', (e) => {
   if (e.key == 'Enter') {
     ws.username = usernameInput.value
     ws.send(JSON.stringify({ type: "usernameInput", username: usernameInput.value }))
-    dialog.close()
   }
 })
 
@@ -190,7 +207,4 @@ function setActiveRoom(newActiveRoom) {
   }
   newActiveRoom.classList.add("active-room")
 }
-
-
-
 
