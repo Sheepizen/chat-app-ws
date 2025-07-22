@@ -6,6 +6,7 @@ const addNewRoomBtn = document.getElementById("add-new-room-btn")
 const roomsDiv = document.getElementsByClassName("rooms-div")[0]
 const rooms = roomsDiv.querySelectorAll("*")
 let messagesContainer = document.getElementById("messages-container")
+const usersContainer = document.getElementById("users-container")
 const ws = new WebSocket(`ws://${window.location.hostname}:8080/`);
 setActiveRoom(rooms[0])
 
@@ -30,6 +31,17 @@ ws.onmessage = (event) => {
   console.log("message from server: ", JSON.parse(event.data))
   const data = JSON.parse(event.data)
 
+  if (data.type == "clientList") {
+    usersContainer.innerHTML = ""
+    data.clients.forEach((client) => {
+      const div = document.createElement("div")
+      div.textContent = client
+      div.classList.add("client")
+      usersContainer.append(div)
+
+    })
+  }
+
   if (data.type == "chatMessage") {
     if (getActiveRoom().innerHTML == data.room) {
       const message = document.createElement("div")
@@ -51,7 +63,6 @@ ws.onmessage = (event) => {
     for (const [key, value] of Object.entries(rooms)) {
       roomnames.push(value.innerHTML)
     }
-    console.log(roomnames)
     for (const room of Object.entries(data.history)) {
       const roomname = room[0]
       if (roomnames.includes(roomname)) {
@@ -122,7 +133,6 @@ chatInput.addEventListener('keydown', async (e) => {
   if (allowedKeys.test(e.key)) {
     ws.send(JSON.stringify({ type: "userTyping", username: ws.username, room: getActiveRoom().innerHTML }))
 
-
     typingController.cancelled = true
     const controller = { cancelled: false }
     typingController = controller
@@ -140,7 +150,6 @@ chatInput.addEventListener('keydown', async (e) => {
   return
 })
 
-
 function addNewRoom() {
   addNewRoomBtnContainer.innerHTML = ""
   const newRoomInput = document.createElement('input')
@@ -157,10 +166,6 @@ addNewRoomBtn.addEventListener('click', () => {
   addNewRoom()
 })
 
-
-
-
-
 function appendRoom(roomname) {
   const newRoomBtn = document.createElement('button')
   newRoomBtn.classList.add("room-btn")
@@ -173,43 +178,19 @@ function appendRoom(roomname) {
   roomsDiv.append(newRoomBtn)
   addNewRoomBtnContainer.innerHTML = ""
   addNewRoomBtnContainer.appendChild(addNewRoomBtn)
-  console.log("addNewRoomBtn", addNewRoomBtn)
 }
-
-
-
-
-
 
 function getActiveRoom() {
   return document.querySelector('.active-room')
 }
 
 function setActiveRoom(newActiveRoom) {
-  console.log("newActiveRoom", newActiveRoom)
   if (getActiveRoom()) {
     getActiveRoom().classList.remove("active-room")
   }
   newActiveRoom.classList.add("active-room")
-  console.log("AFTER ADD", newActiveRoom)
 }
 
 
 
 
-
-// function newRoom(name){
-//   if(!localStorage.getItem(name)){
-//   localStorage.setItem(name,JSON.stringify({messages:[]}))
-//   }
-// }
-// newRoom("general")
-//
-// function writeChat(roomName, username, message){
-//   console.log("dasd",localStorage.getItem(roomName))
-//   let room = JSON.parse(localStorage.getItem(roomName))
-//   room.messages.push({username: username, message: message})
-//   localStorage.setItem(roomName,JSON.stringify(room))
-//   console.log("room", room)
-// }
-// writeChat("general", "jonatan","hallo")

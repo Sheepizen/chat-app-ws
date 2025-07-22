@@ -3,75 +3,91 @@ header {
   align-items: center;
   justify-content: center;
 }
-#contents{
+
+#contents {
   display: flex;
   align-items: center;
   justify-content: center;
 }
-#chat-container{
+
+#chat-container {
   display: flex;
   flex-direction: column;
   position: relative;
-height: 300px;
-width: 35%;
-border: 2px solid black;
+  height: 300px;
+  width: 35%;
+  border: 2px solid black;
 }
-#messages-container{
+
+#messages-container {
   flex: 1 1 auto;
   display: flex;
   flex-direction: column;
   position: relative;
-  height:100%;
-  width:100%;
+  height: 100%;
+  width: 100%;
   overflow-y: auto;
 }
 
-#input-container{
+#input-container {
   flex-shrink: 0;
   padding-top: 5px;
   padding-bottom: 5px;
   /* border-top: 1px solid black; */
 }
 
-#username-input-container{
+#username-input-container {
   border: 1px black solid;
 }
 
-#chat-box{
-border-top: 1px solid black;
-width: 100%;
-}
-input{
-  all:unset;
+#chat-box {
+  border-top: 1px solid black;
+  width: 100%;
 }
 
-#rooms-container{
+input {
+  all: unset;
+}
+
+#rooms-container {
   border: 2px black solid;
   width: 5%;
   height: 300px;
-  margin: 30px
+  margin: 20px
 }
 
-#new-room-btn-container{
+#new-room-btn-container {
   position: relative;
   justify-content: center;
-}
-
-#new-room-btn{
-  position: relative;
-  justify-content: center;
-}
-
-.rooms{
-  border-bottom: 1px black solid;
-}
-.room-btn{
   height: 100%;
   width: 100%;
 }
 
-.active-room{
+#new-room-btn {
+  position: relative;
+  justify-content: center;
+  height: 100%;
+  width: 100%;
+}
+
+.rooms {
+  border-bottom: 1px black solid;
+  height: 100%;
+  width: 100%;
+}
+
+.room-btn {
+  height: 100%;
+  width: 100%;
+}
+
+.active-room {
   background-color: red;
 }
 
-
+#users-container {
+  margin: 20px;
+  height: 300px;
+  width: 5%;
+  border: 2px black solid;
+}

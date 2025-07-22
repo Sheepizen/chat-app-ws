@@ -4,6 +4,7 @@ import { WebSocketServer } from 'ws';
 const app = express();
 const port = 8080;
 
+
 app.use(express.static('public'))
 
 app.get('/', (req, res) => {
@@ -24,19 +25,27 @@ wss.getUniqueID = function() {
   return s4() + s4() + '-' + s4();
 };
 let chatHistory = { general: { messages: [] }, quatsch: { messages: [] } }
+let clientList = new Set([])
 
 wss.on('connection', (ws) => {
   ws.on('error', console.error);
-
   ws.id = wss.getUniqueID();
+
+  ws.send(JSON.stringify({ type: "clientList", clients: Array.from(clientList) }))
   ws.send(JSON.stringify({ type: "chatHistory", history: chatHistory }))
   ws.send(JSON.stringify({ type: "loadRooms", history: chatHistory }))
+
 
   ws.on('message', function message(data) {
     const dataMessage = JSON.parse(data)
     if (dataMessage.type == "usernameInput") {
       ws.username = dataMessage.username
-
+      clientList.add(dataMessage.username)
+      wss.clients.forEach(function each(client) {
+        if (client.readyState === WebSocket.OPEN) {
+          client.send(JSON.stringify({ type: "clientList", clients: Array.from(clientList) }))
+        }
+      })
     }
 
     console.log("data got ", dataMessage)
@@ -65,7 +74,6 @@ wss.on('connection', (ws) => {
     }
 
     if (dataMessage.type == "userTyping") {
-      console.log("DATA MESSAGE", dataMessage)
       wss.clients.forEach(function each(client) {
         if (client !== ws && client.readyState == WebSocket.OPEN) {
           client.send(JSON.stringify({ type: "userTyping", username: dataMessage.username, userTypingBool: true, room: dataMessage.room }))
@@ -81,14 +89,17 @@ wss.on('connection', (ws) => {
       })
     }
 
-
-
-
-
+    ws.on("close", () => {
+      clientList.delete(ws.username)
+      wss.clients.forEach(function each(client) {
+        if (client !== ws && client.readyState == WebSocket.OPEN) {
+          client.send(JSON.stringify({ type: "clientList", clients: Array.from(clientList) }))
+        }
+      })
+    })
 
   });
 
   console.log('Client connected');
-  // ws.send('Welcome to WebSocket!');
 })
-  ;
+
