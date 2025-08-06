@@ -10,15 +10,14 @@ const roomsDiv = document.getElementsByClassName("rooms-div")[0];
 const rooms = roomsDiv.querySelectorAll("*");
 let messagesContainer = document.getElementById("messages-container");
 const usersContainer = document.getElementById("users-container");
-const ws = new WebSocket(`ws://${window.location.hostname}:8080/`);
-setActiveRoom(rooms[0]);
+const ws = new WebSocket(`ws://${window.location.hostname}:8081/`);
+
 
 chatInput.value = "";
 usernameInput.value = "";
 dialog.showModal();
 
 ws.onopen = () => {
-  console.log("connected");
   rooms.forEach((room) => {
     room.addEventListener("click", () => {
       ws.send(JSON.stringify({ type: "roomChange", room: room.textContent }));
@@ -30,6 +29,7 @@ ws.onopen = () => {
 
 ws.onmessage = (event) => {
   console.log("message from server: ", JSON.parse(event.data));
+
   const data = JSON.parse(event.data);
 
   if (data.type == "alreadyExists") {
@@ -59,7 +59,7 @@ ws.onmessage = (event) => {
   }
 
   if (data.type == "chatMessage") {
-    if (getActiveRoom().innerHTML == data.room) {
+    if (getActiveRoom() == data.room) {
       const message = document.createElement("div");
       message.textContent = `${data.username}: ` + `${data.message}`;
       messagesContainer.appendChild(message);
@@ -67,7 +67,8 @@ ws.onmessage = (event) => {
   }
 
   if (data.type == "chatHistory") {
-    for (const message of data.history[getActiveRoom().innerHTML].messages) {
+    console.log(data.history, getActiveRoom())
+    for (const message of data.history[getActiveRoom()].messages) {
       const div = document.createElement("div");
       div.textContent = `${message.username}: ` + `${message.message}`;
       messagesContainer.appendChild(div);
@@ -81,9 +82,7 @@ ws.onmessage = (event) => {
     }
     for (const room of Object.entries(data.history)) {
       const roomname = room[0];
-      if (roomnames.includes(roomname)) {
-        continue;
-      }
+      if (roomname == "general") { continue }
       appendRoom(roomname);
     }
   }
@@ -95,14 +94,13 @@ ws.onmessage = (event) => {
     for (const [key, value] of Object.entries(data.history)) {
       roomnames.push(key);
     }
-    console.log(roomnames)
     roomnames.forEach((room) => { appendRoom(room) })
-    const prevActiveRoomElem = document.getElementById(`room-${prevActiveRoom.innerHTML}`)
+    const prevActiveRoomElem = document.getElementById(`${prevActiveRoom}`)
     if (prevActiveRoomElem) {
       setActiveRoom(prevActiveRoomElem);
     } else {
-      setActiveRoom(document.getElementById(`room-general`))
-      loadChat(data.history[getActiveRoom().innerHTML].messages)
+      setActiveRoom(document.getElementById("general"))
+      loadChat(data.history[getActiveRoom()].messages)
     }
   }
 
@@ -111,15 +109,10 @@ ws.onmessage = (event) => {
   }
 
   if (data.type == "roomChange") {
-    loadChat(data.history[getActiveRoom().innerHTML].messages)
-    // for (const message of data.history[getActiveRoom().innerHTML].messages) {
-    //   const div = document.createElement("div");
-    //   div.textContent = `${message.username}: ` + `${message.message}`;
-    //   messagesContainer.appendChild(div);
-    // }
+    loadChat(data.history[getActiveRoom()].messages)
   }
 
-  if (data.type == "userTyping" && data.room == getActiveRoom().innerHTML) {
+  if (data.type == "userTyping" && data.room == getActiveRoom()) {
     const typingElem = document.querySelector("#user-typing");
     if (typingElem) {
       typingElem.remove();
@@ -156,20 +149,20 @@ chatInput.addEventListener("keydown", async (e) => {
     ws.send(
       JSON.stringify({
         type: "chatMessage",
-        room: getActiveRoom().innerHTML,
+        room: getActiveRoom(),
         username: ws.username,
         message: chatInput.value,
       })
     );
     ws.send(
-      JSON.stringify({ type: "notTyping", room: getActiveRoom().innerHTML })
+      JSON.stringify({ type: "notTyping", room: getActiveRoom() })
     );
     chatInput.value = "";
     return;
   }
   if (e.key == "Backspace") {
     ws.send(
-      JSON.stringify({ type: "notTyping", room: getActiveRoom().innerHTML })
+      JSON.stringify({ type: "notTyping", room: getActiveRoom() })
     );
     return;
   }
@@ -179,7 +172,7 @@ chatInput.addEventListener("keydown", async (e) => {
       JSON.stringify({
         type: "userTyping",
         username: ws.username,
-        room: getActiveRoom().innerHTML,
+        room: getActiveRoom(),
       })
     );
 
@@ -193,7 +186,7 @@ chatInput.addEventListener("keydown", async (e) => {
         JSON.stringify({
           type: "notTyping",
           username: ws.username,
-          room: getActiveRoom().innerHTML,
+          room: getActiveRoom(),
         })
       );
     }
@@ -219,10 +212,10 @@ addNewRoomBtn.addEventListener("click", () => {
 });
 
 function appendRoom(roomname) {
-  const newRoomBtn = document.createElement("button");
-  newRoomBtn.classList.add("room-btn");
+  const newRoomBtn = document.createElement("div");
+  newRoomBtn.classList.add("room");
   newRoomBtn.innerHTML = roomname;
-  newRoomBtn.id = `room-${roomname}`
+  newRoomBtn.id = `${roomname}`
   newRoomBtn.addEventListener("click", () => {
     ws.send(
       JSON.stringify({ type: "roomChange", room: newRoomBtn.textContent })
@@ -230,18 +223,33 @@ function appendRoom(roomname) {
     messagesContainer.innerHTML = "";
     setActiveRoom(newRoomBtn);
   });
+
+  const deleteButton = document.createElement("button");
+  deleteButton.classList.add("delete-btn")
+  deleteButton.innerHTML = "X"
+  deleteButton.addEventListener('click', (e) => {
+    e.stopPropagation()
+    deleteRoom(roomname)
+  })
+
+
+  newRoomBtn.appendChild(deleteButton)
   roomsDiv.append(newRoomBtn);
   addNewRoomBtnContainer.innerHTML = "";
   addNewRoomBtnContainer.appendChild(addNewRoomBtn);
 }
 
 function getActiveRoom() {
-  return document.querySelector(".active-room");
+  const activeRoom = document.querySelector(".active-room")
+  if (activeRoom) {
+    return document.querySelector(".active-room").id;
+  }
 }
+
 
 function setActiveRoom(newActiveRoom) {
   if (getActiveRoom()) {
-    getActiveRoom().classList.remove("active-room");
+    document.getElementById(getActiveRoom()).classList.remove("active-room");
   }
   newActiveRoom.classList.add("active-room");
 }

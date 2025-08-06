@@ -2,7 +2,7 @@ import express from "express";
 import { WebSocketServer } from "ws";
 import { readFileSync, writeFile } from "node:fs";
 const app = express();
-const port = 8080;
+const port = 8081;
 
 app.use(express.static("public"));
 

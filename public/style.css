@@ -70,15 +70,37 @@ input {
   width: 100%;
 }
 
-.rooms {
+.room {
   border-bottom: 1px black solid;
+  margin-top: 1px;
+  margin-bottom: 1px;
   height: 100%;
   width: 100%;
+}
+
+.room:hover {
+  background-color: lightgrey;
+}
+
+.room:hover .delete-btn {
+  background-color: lightgrey;
+  display: inline-block;
 }
 
 .room-btn {
   height: 100%;
   width: 100%;
+}
+
+.delete-btn {
+  all: unset;
+  border: 0.5px black solid;
+  padding-left: 1px;
+  padding-right: 1px;
+  display: none;
+  cursor: pointer;
+  background-color: grey;
+
 }
 
 .active-room {
